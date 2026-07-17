@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="description" content="Street Fighter 6のコンボ入力を、60fpsのタイムライン・音・コントローラー表示で反復練習するWebアプリ" />
+  <title>ST6 TRAINING — Combo Rhythm Lab</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="ST6 TRAINING ホーム">
+        <span class="brand-mark" aria-hidden="true">ST6</span>
+        <span><strong>TRAINING</strong><small>COMBO RHYTHM LAB</small></span>
+      </a>
+      <div class="status-cluster">
+        <span class="status-pill"><i></i>60 FPS CLOCK</span>
+        <button id="helpButton" class="icon-button" type="button" aria-label="使い方を表示">?</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="combo-panel" aria-label="コンボ一覧">
+        <div class="panel-heading">
+          <div><p class="eyebrow">MODERN / MARISA</p><h1>コンボ練習</h1></div>
+          <button id="newComboButton" class="icon-button small" type="button" title="コンボを追加">＋</button>
+        </div>
+        <label class="search-box"><span>⌕</span><input id="comboSearch" type="search" placeholder="コンボを検索" autocomplete="off" /></label>
+        <div id="comboList" class="combo-list"></div>
+        <div class="source-note"><strong>DATA NOTE</strong><p>時計は60fps基準。プリセットの入力位置は編集・保存できる。</p></div>
+      </aside>
+
+      <section class="training-stage">
+        <div class="stage-header">
+          <div>
+            <div class="title-row"><p id="comboCategory" class="eyebrow">BASIC</p><span id="verificationBadge" class="verification-badge">要ゲーム内確認</span></div>
+            <h2 id="comboTitle">しゃがみ弱 ×2 → ディマカイルス</h2>
+            <p id="comboDescription" class="combo-description"></p>
+          </div>
+          <button id="editButton" class="ghost-button" type="button">編集</button>
+        </div>
+
+        <div class="mode-switcher" role="tablist" aria-label="練習モード">
+          <button class="mode-button active" type="button" data-mode="watch" role="tab" aria-selected="true"><span>WATCH</span><small>見て覚える</small></button>
+          <button class="mode-button" type="button" data-mode="rhythm" role="tab" aria-selected="false"><span>RHYTHM</span><small>リズムを押す</small></button>
+          <button class="mode-button" type="button" data-mode="controller" role="tab" aria-selected="false"><span>CONTROLLER</span><small>実入力を判定</small></button>
+        </div>
+
+        <div class="frame-dashboard">
+          <div class="frame-counter-wrap"><p>CURRENT FRAME</p><div class="frame-counter"><span id="currentFrame">000</span><small>F</small></div></div>
+          <div id="judgement" class="judgement" data-grade="idle"><strong>READY</strong><span>再生すると開始</span></div>
+          <div class="next-input-wrap"><p>NEXT INPUT</p><div id="nextInput" class="next-input">—</div></div>
+        </div>
+
+        <div class="controller-area">
+          <div class="controller-copy"><p id="stepLabel">入力を確認</p><strong id="stepCommand">↓ ＋ 弱</strong><span id="stepHint">点灯する方向とボタンを押す</span></div>
+          <div id="controllerVisual" class="controller" aria-label="入力表示用コントローラー">
+            <div class="controller-grip left"></div><div class="controller-grip right"></div>
+            <div class="controller-body">
+              <div class="dpad" aria-label="方向キー">
+                <button class="pad-key up" type="button" data-input="up" aria-label="上">▲</button>
+                <button class="pad-key left" type="button" data-input="left" aria-label="左">◀</button>
+                <span class="pad-center"></span>
+                <button class="pad-key right" type="button" data-input="right" aria-label="右">▶</button>
+                <button class="pad-key down" type="button" data-input="down" aria-label="下">▼</button>
+              </div>
+              <div class="utility-buttons">
+                <button class="utility-key" type="button" data-input="assist">AS</button>
+                <button class="utility-key" type="button" data-input="drive">DI</button>
+              </div>
+              <div class="face-buttons" aria-label="攻撃ボタン">
+                <button class="face-key special" type="button" data-input="special"><span>SP</span><small>必殺</small></button>
+                <button class="face-key heavy" type="button" data-input="heavy"><span>強</span><small>H</small></button>
+                <button class="face-key medium" type="button" data-input="medium"><span>中</span><small>M</small></button>
+                <button class="face-key light" type="button" data-input="light"><span>弱</span><small>L</small></button>
+              </div>
+            </div>
+          </div>
+          <div id="connectionStatus" class="connection-status"><span class="connection-dot"></span><span>キーボード / タッチ入力</span></div>
+        </div>
+
+        <section class="timeline-section" aria-label="フレームタイムライン">
+          <div class="timeline-toolbar">
+            <div><span>INPUT TIMELINE</span><small id="timelineMeta">全64F</small></div>
+            <div class="legend"><span><i class="legend-window"></i>受付幅</span><span><i class="legend-target"></i>推奨</span></div>
+          </div>
+          <div id="timelineViewport" class="timeline-viewport"><div id="timeline" class="timeline"></div></div>
+        </section>
+
+        <div class="transport-panel">
+          <button id="previousStepButton" class="transport-button" type="button" aria-label="前の入力">|◀</button>
+          <button id="playButton" class="play-button" type="button" aria-label="再生"><span class="play-icon">▶</span><span class="pause-icon">Ⅱ</span></button>
+          <button id="nextStepButton" class="transport-button" type="button" aria-label="次の入力">▶|</button>
+          <label class="control-field speed-field"><span>SPEED</span><select id="speedSelect"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option></select></label>
+          <label class="toggle-field"><input id="loopToggle" type="checkbox" checked /><span class="toggle-track"><i></i></span><span>LOOP</span></label>
+          <label class="toggle-field"><input id="soundToggle" type="checkbox" checked /><span class="toggle-track"><i></i></span><span>SOUND</span></label>
+        </div>
+
+        <section class="score-panel" aria-label="練習結果">
+          <div><span>PERFECT</span><strong id="perfectCount">0</strong></div><div><span>GOOD</span><strong id="goodCount">0</strong></div><div><span>EARLY</span><strong id="earlyCount">0</strong></div><div><span>LATE</span><strong id="lateCount">0</strong></div><div><span>MISS</span><strong id="missCount">0</strong></div>
+          <button id="resetScoreButton" class="ghost-button compact" type="button">リセット</button>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="helpDialog" class="app-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">HOW TO USE</p><h2>練習方法</h2></div><button class="icon-button" value="close" aria-label="閉じる">×</button></div>
+      <div class="help-grid">
+        <article><b>1</b><h3>WATCH</h3><p>点灯するパッドとクリック音を見ながら、入力の間隔を覚える。</p></article>
+        <article><b>2</b><h3>RHYTHM</h3><p>表示されたキーを押し、指定フレームとの差を判定する。</p></article>
+        <article><b>3</b><h3>CONTROLLER</h3><p>ゲームパッドを接続し、表示された方向・ボタンを実際に入力する。</p></article>
+      </div>
+      <div class="keymap"><h3>キーボード</h3><p>方向：矢印 / WASD　弱：J　中：K　強：L　必殺：U　AS：I　DI：O　再生：Space</p></div>
+      <p class="dialog-note">ブラウザやBluetooth機器の遅延は端末ごとに異なる。ゲーム内の成否を最終基準にし、編集画面で入力位置と受付幅を調整してください。</p>
+    </form>
+  </dialog>
+
+  <dialog id="editorDialog" class="app-dialog editor-dialog">
+    <form method="dialog" id="editorForm">
+      <div class="dialog-heading"><div><p class="eyebrow">COMBO EDITOR</p><h2>コンボを編集</h2></div><button class="icon-button" value="cancel" aria-label="閉じる">×</button></div>
+      <div class="editor-grid">
+        <label><span>名称</span><input id="editTitle" required /></label><label><span>カテゴリ</span><input id="editCategory" required /></label>
+        <label class="wide"><span>説明</span><textarea id="editDescription" rows="2"></textarea></label>
+        <label><span>全体フレーム</span><input id="editTotalFrames" type="number" min="1" max="600" required /></label>
+        <label><span>確認状態</span><select id="editVerified"><option value="false">要ゲーム内確認</option><option value="true">確認済み</option></select></label>
+      </div>
+      <div class="step-editor-heading"><h3>入力ステップ</h3><button id="addStepButton" class="ghost-button compact" type="button">＋ ステップ追加</button></div>
+      <div id="stepEditor" class="step-editor"></div>
+      <div class="editor-json-row"><button id="exportButton" class="ghost-button" type="button">JSONを書き出す</button><label class="file-button">JSONを読み込む<input id="importInput" type="file" accept="application/json,.json" /></label></div>
+      <div class="dialog-actions"><button id="deleteComboButton" class="danger-button" type="button">削除</button><span></span><button class="ghost-button" value="cancel">キャンセル</button><button id="saveComboButton" class="primary-button" type="submit" value="default">保存</button></div>
+    </form>
+  </dialog>
+
+  <template id="stepEditorTemplate">
+    <div class="step-editor-row">
+      <span class="step-number"></span>
+      <label><span>表示名</span><input data-field="label" required /></label><label><span>入力</span><input data-field="command" placeholder="down+light" required /></label>
+      <label><span>推奨F</span><input data-field="frame" type="number" min="0" max="599" required /></label><label><span>早め</span><input data-field="early" type="number" min="0" max="30" required /></label><label><span>遅め</span><input data-field="late" type="number" min="0" max="30" required /></label>
+      <button type="button" data-action="remove" class="icon-button small" aria-label="ステップを削除">×</button>
+    </div>
+  </template>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
