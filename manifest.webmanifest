@@ -1,0 +1,12 @@
+{
+  "name": "ST6 TRAINING — Combo Rhythm Lab",
+  "short_name": "ST6 TRAINING",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080b10",
+  "theme_color": "#0d1117",
+  "description": "Street Fighter 6のコンボ入力をリズムで練習するWebアプリ",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
